@@ -434,8 +434,34 @@ def run_arm_manual_calibration(arm: MotorsBus, robot_type: str, arm_name: str, a
     run_arm_calibration(arm, "so100", "left", "follower")
     ```
     """
-    if (arm.read("Torque_Enable") != TorqueMode.DISABLED.value).any():
-        raise ValueError("To run calibration, the torque must be disabled on all motors.")
+    
+    print(">>Motors to be read:<< \n", arm.motor_names)
+    
+    unreachable = []
+    reachable = []
+    for motor in arm.motor_names:
+        try:
+            arm.read("Torque_Enable", motor)
+            reachable.append(motor)
+        except Exception as e:
+            print(f"[ERROR] Could not read motor '{motor}': {e}")
+            unreachable.append(motor)
+
+    print("\n[Summary]")
+    print(f"Reachable motors   : {reachable}")
+    print(f"Unreachable motors : {unreachable}")
+    
+    
+    for motor in arm.motor_names:
+        try:
+            val = arm.read("Torque_Enable", motor)
+            if val != TorqueMode.DISABLED.value:
+                raise ValueError(f"Motor '{motor}' must have torque disabled to proceed with calibration.")
+            reachable.append(motor)
+        except Exception as e:
+            print(f"[WARNING] Skipping unreachable motor '{motor}': {e}")
+            
+#    arm.motor_names = reachable  # Narrow scope to only functional motors        
 
     print(f"\nRunning calibration of {robot_type} {arm_name} {arm_type}...")
 

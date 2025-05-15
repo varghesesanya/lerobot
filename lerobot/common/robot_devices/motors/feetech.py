@@ -364,6 +364,7 @@ class FeetechMotorsBus:
 
         indices = []
         for idx in tqdm.tqdm(possible_ids):
+            print("Reading ID ", {idx})
             try:
                 present_idx = self.read_with_motor_ids(self.motor_models, [idx], "ID", num_retry=num_retry)[0]
             except ConnectionError:
